@@ -12,9 +12,9 @@
     :default false]
    ["-p" "--path PATH" "folder with desired files"]
    ["-n" "--file-names FILE_NAMES" "comma delimeted list of single files to update"]
-   ["-F" "--file-name-format FORMAT" "new file name using %ARTIST%, %ALBUM%, %TITLE%, %TRACK. Default is \"%ARTIST% - %ALBUM% - %TITLE% - %TRACK%\""
-    :default "%ARTIST% - %ALBUM% - %TITLE% - %TRACK%"]
-   ["-d" "--dry-run" "only print the planned changes" :default false]])
+   ["-F" "--file-name-format FORMAT" "new file name using %ARTIST%, %ALBUM%, %TITLE%, %TRACK. Default is \"%ARTIST% - %ALBUM% - %TITLE% - %TRACK%\""]
+   ["-d" "--dry-run" "only print the planned changes" :default false]
+   ["-r" "--recursive" "change files in all subfolders" :default false]])
 
 (defn- required-args?
   [{:keys [file tag path file-names]}]
@@ -22,15 +22,20 @@
        (or path file-names)))
 
 (defn- process-args
-  [{:keys [tag file path file-names dry-run] :as options}]
-  (reset! common/configuration (cond-> @common/configuration
-                                       tag (assoc :mode :tag)
-                                       file (assoc :mode :file)
-                                       path (assoc :path path)
-                                       file-names (update :file-names #(-> file-names
-                                                                           (str/split #",")
-                                                                           (concat %)))
-                                       dry-run (assoc :testing? true))))
+  [{:keys [tag file path file-names dry-run recursive format] :as options}]
+  (let [conf (cond-> @common/configuration
+                     tag (assoc :mode :tag)
+                     file (assoc :mode :file)
+                     path (assoc :path path)
+                     file-names (update :file-names #(-> file-names
+                                                         (str/split #",")
+                                                         (concat %)))
+                     dry-run (assoc :testing? true)
+                     recursive (assoc :recursive? true)
+                     format (assoc :format format))
+        conf (-> conf
+                 (update :format #(str % ".mp3")))]
+    (reset! common/configuration conf)))
 
 (defn- validate-args
   [args]
@@ -49,4 +54,4 @@
       (common/exit (if ok? 0 1) exit-message)
       (case mode
         :file (file/rename-files options)))
-    (println "done!")))
+    (println "updated" @common/changed-files-count "files\ndone!")))

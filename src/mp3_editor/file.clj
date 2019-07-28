@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [mp3-editor.common :as common])
   (:import (java.io File)
-           (java.nio.file Files Path Paths CopyOption StandardCopyOption)))
+           (java.nio.file FileSystems)))
 
 (def ^:private illegal-name-chars #"[\\/:\"*?<>|]+")
 (defn- create-new-name
@@ -27,41 +27,50 @@
 
 (defn- rename-file
   [^File file id3-tag]
-  (when-let [new-name (create-new-name id3-tag)]
-    (if-not (:testing? @common/configuration)
-      (when-not (.renameTo file (.toFile (.resolveSibling (.toPath file) new-name)))
-        (println "ERROR! could not rename" (str file) "->" new-name))
-      (println (str file) "->" new-name))))
+  (let [new-name (create-new-name id3-tag)]
+    (when (not-empty new-name)
+      (swap! common/changed-files-count inc)
+      (if-not (:testing? @common/configuration)
+        (when-not (.renameTo file (.toFile (.resolveSibling (.toPath file) new-name)))
+          (println "ERROR! could not rename" (str file) "->" new-name))
+        (println (str file) "->" new-name)))))
 
 
-
-(defn- traverse-folder
+(defn- desired-files
   [^String path]
-  (reduce
-    (fn [additional-folders ^File current-file]
-      (let [additional-folders (if (.isDirectory current-file)
-                                 (conj additional-folders current-file))]
-        (when (str/ends-with? (str/lower-case (str current-file)) ".mp3")
-          (rename-file current-file (common/read-id3v2 (str current-file))))
-        additional-folders))
-    []
-    (file-seq (io/file path))))
+  (let [file (io/file path)
+        file? #(.isFile %)
+        mp3? #(str/ends-with? (str/lower-case (str (.toPath %)))
+                              ".mp3")
+        allowed-location? (if-not (:recursive? @common/configuration)
+                            #(= (.getParent %)
+                                (.getAbsolutePath file))
+                            identity)]
+    (->> (file-seq file)
+         (filter #(and (allowed-location? %)
+                       (file? %)
+                       (mp3? %))))))
+
+(defn- rename-multiple-files
+  [files]
+  (doseq [^File current-file files]
+    (when (.isDirectory current-file)
+      (println "updating dir" current-file))
+    (rename-file current-file (common/read-id3v2 (.getAbsolutePath current-file)))))
 
 (defn- rename-files-in-path
   [^String path]
-  (loop [folders [path]]
-    (when-let [path (first folders)]
-      (let [final-folders (concat (rest folders)
-                                  (traverse-folder path))]
-        (recur final-folders)))))
+  (let [path (.getAbsolutePath (io/file path))]
+    (println "starting from" path)
+    (rename-multiple-files (desired-files path))))
 
+(defn- rename-selected-files
+  [file-names]
+  (rename-multiple-files (map #(io/file %) file-names)))
 
-
-(defn- rename-files
-  [file-names])
 
 (defn rename-files
   [{:keys [file-names path]}]
   (cond
     path (rename-files-in-path path)
-    file-names (rename-files file-names)))
+    file-names (rename-selected-files file-names)))

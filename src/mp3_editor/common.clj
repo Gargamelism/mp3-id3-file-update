@@ -4,7 +4,9 @@
 (def configuration (atom {:mode       nil
                           :path       nil
                           :file-names []
-                          :testing?   true}))
+                          :testing?   false
+                          :recursive? false
+                          :format     "%ARTIST% - %ALBUM% - %TRACK% - %TITLE%"}))
 
 (def file-name-format-map
   {"%ARTIST%" :artist
@@ -14,10 +16,11 @@
 
 (defn track-number-format
   [^String track-number]
-
   (when-let [^Long track (some-> (re-find #"\d+" track-number)
                                  (Integer.))]
     (format "%02d" track)))
+
+(def changed-files-count (atom 0))
 
 (def tag-format
   {:artist       identity
