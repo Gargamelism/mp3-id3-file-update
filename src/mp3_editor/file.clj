@@ -54,8 +54,6 @@
 (defn- rename-multiple-files
   [files]
   (doseq [^File current-file files]
-    (when (.isDirectory current-file)
-      (println "updating dir" current-file))
     (rename-file current-file (common/read-id3v2 (.getAbsolutePath current-file)))))
 
 (defn- rename-files-in-path
