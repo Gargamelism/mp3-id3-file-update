@@ -1,4 +1,4 @@
-(defproject mp3-editor "0.0.1"
+(defproject mp3-editor "0.0.2"
   :description "script to automate mp3 name editing and tag editing"
   :url "https://github.com/Gargamelism"
   :license {:name "Eclipse Public License"
