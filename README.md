@@ -15,9 +15,9 @@ This tool allows to update file names based on the id3v2 details.
 
 ### Updating specific files example
 #### Updating filenames
-```java -jar mp3-editor-0.0.1-standalone.jar -f -n ".\Finntroll\2010 - Nifelvind\(06) [Finntroll] Tiden Utan Tid.mp3"```
+```java -jar mp3-editor-0.0.1-standalone.jar -f -n ".\Finntroll\2010 - Nifelvind\(06) [Finntroll] Tiden Utan Tid.mp3,.\Finntroll\2010 - Nifelvind\(06) [Finntroll] Solsagan.mp3"```
 #### Updating tags
-```java -jar mp3-editor-0.0.1-standalone.jar -t -n ".\Finntroll\2010 - Nifelvind\(06) [Finntroll] Tiden Utan Tid.mp3" -F "(%TRACK%) [%ARTIST%] %TITLE%" -A Blodsvept```
+```java -jar mp3-editor-0.0.1-standalone.jar -t -n ".\Finntroll\2010 - Nifelvind\(06) [Finntroll] Tiden Utan Tid.mp3,.\Finntroll\2010 - Nifelvind\(06) [Finntroll] Solsagan.mp3" -F "(%TRACK%) [%ARTIST%] %TITLE%" -A Nifelvind```
 
 ### Available flags (can be viewed if run without flags)
 ```
