@@ -19,9 +19,14 @@ This tool allows to update file names based on the id3v2 details.
 #### Updating tags
 ```java -jar mp3-editor-0.0.1-standalone.jar -t -n ".\Finntroll\2010 - Nifelvind\(06) [Finntroll] Tiden Utan Tid.mp3,.\Finntroll\2010 - Nifelvind\(06) [Finntroll] Solsagan.mp3" -F "(%TRACK%) [%ARTIST%] %TITLE%" -A Nifelvind```
 
+## Formatting notes
+* ".mp3" will be added by the code.
+* If there are sections you wish to ignore but are not consistent you can use *%IGNORE%*, for example:
+..```... -n ".\Finntroll\2010 - Nifelvind\(06) zOrO [Finntroll] Tiden Utan Tid.mp3, .\Finntroll\2010 - Nifelvind\(06) d4ryL [Finntroll] Tiden Utan Tid.mp3 -F "(%TRACK%) %IGNORE% [%ARTIST%] %TRACK%"
+
 ### Available flags (can be viewed if run without flags)
 ```
-    -f, --file-name                rename files
+  -f, --file-name                rename files
   -t, --tag                      update id3 tag
   -p, --path PATH                folder with desired files
   -n, --file-names FILE_NAMES    comma delimeted list of single files to update
