@@ -13,7 +13,7 @@
     :default false]
    ["-p" "--path PATH" "folder with desired files"]
    ["-n" "--file-names FILE_NAMES" "comma delimeted list of single files to update"]
-   ["-F" "--file-name-format FORMAT" "format for file renaming or info retrieval from files (to fill id3) %ARTIST%, %ALBUM%, %TITLE%, %TRACK. Default is \"%ARTIST% - %ALBUM% - %TITLE% - %TRACK%\""]
+   ["-F" "--file-name-format FORMAT" "format for file renaming or info retrieval from files (to fill id3) %ARTIST%, %ALBUM%, %TITLE%, %TRACK. Default is \"%ARTIST% - %ALBUM% - %TRACK% - %TITLE%\""]
    ["-a" "--artist ARTIST" "track's artist, shouldn't be used recursively unless root is band's dir - can be used with format"]
    ["-A" "--album ALBUM" "track's album, shouldn't be used recursively - can be used with format"]
    ["-d" "--dry-run" "only print the planned changes" :default false]
