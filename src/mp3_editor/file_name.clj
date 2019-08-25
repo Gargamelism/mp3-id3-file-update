@@ -7,21 +7,22 @@
 (def ^:private illegal-name-chars #"[\\/:\"*?<>|]+")
 (defn- create-new-name
   [id3-tag]
-  (let [required-fields (keep
-                          (fn [format-val]
-                            (let [name (get common/file-name-format-map format-val)]
-                              {:name       name
-                               :format-val format-val
-                               :val        ((name common/tag-format) (name id3-tag))}))
-                          (re-seq #"%\w+%" (:file-name-format @common/configuration)))]
-    (when (every? :val required-fields)
-      (reduce
-        (fn [new-name {:keys [format-val name val]}]
-          (-> new-name
-              (str/replace (re-pattern format-val) val)
-              (str/replace illegal-name-chars " ")))
-        (:file-name-format @common/configuration)
-        required-fields))))
+  (let [required-fields (reduce
+                          (fn [required-fields format-val]
+                            (let [name (get common/file-name-format-map format-val)
+                                  val ((name common/tag-format) (name id3-tag))]
+                              (if (and name val)
+                                (assoc required-fields name val))))
+                          {}
+                          (mapv first (:file-name-format @common/configuration)))]
+    (-> (reduce
+          (fn [new-name [val delim-re]]
+            (str new-name
+                 ((get common/file-name-format-map val) required-fields)
+                 delim-re))
+          ""
+          (:file-name-format @common/configuration))
+        (str/replace #"\$" ".mp3"))))
 
 (defn- rename-file
   [^File file id3-tag]
@@ -36,7 +37,7 @@
 (defn- rename-multiple-files
   [files]
   (doseq [^File current-file files]
-    (rename-file current-file (common/read-id3v2 (.getAbsolutePath current-file)))))
+    (rename-file current-file (common/read-id3v2 (common/file->id3-tag current-file)))))
 
 (defn- rename-files-in-path
   [^String path]
@@ -47,7 +48,6 @@
 (defn- rename-selected-files
   [file-names]
   (rename-multiple-files (map #(io/file %) file-names)))
-
 
 (defn rename-files
   [{:keys [file-names path]}]

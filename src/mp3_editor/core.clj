@@ -20,12 +20,33 @@
    ["-r" "--recursive" "change files in all subfolders" :default false]])
 
 (defn- required-args?
-  [{:keys [file tag path file-names file-name-format]}]
-  (and (or file tag)
-       (or path file-names)
-       (if tag
-         file-name-format
-         file)))
+  [{:keys [file-name tag path file-names]}]
+  (and (or file-name tag)
+       (or path file-names)))
+
+(defn- format-parts->format-pairs
+  [format-parts]
+  (let [[format-pairs last-element]
+        (reduce
+          (fn [[parts last-part] current-part]
+            (cond
+              (and (empty? parts) (not last-part) (not (re-find common/format-key-re current-part))) [{"%BEGIN%" (re-pattern current-part)} nil]
+              last-part [(conj parts [last-part (re-pattern current-part)]) nil]
+              :else [parts current-part]))
+          [[] nil]
+          format-parts)]
+    (if last-element
+      (conj format-pairs [last-element #"$"])
+      format-pairs)))
+
+(let [file-name-parts-re #"(.*?)(%\w+%)(.*?)"]
+  (defn- file-name-format->format-parts
+    [^String file-name-format]
+    (->> (re-seq file-name-parts-re file-name-format)
+         (map rest)
+         flatten
+         (filter not-empty)
+         (format-parts->format-pairs))))
 
 (defn- process-args
   [{:keys [tag file-name path file-names dry-run recursive file-name-format artist album] :as options}]
@@ -38,11 +59,9 @@
                                                          (concat %)))
                      dry-run (assoc :testing? true)
                      recursive (assoc :recursive? true)
-                     file-name-format (assoc :file-name-format file-name-format)
+                     file-name-format (assoc :file-name-format (file-name-format->format-parts file-name-format))
                      artist (assoc :artist artist)
-                     album (assoc :album album))
-        conf (-> conf
-                 (update :file-name-format #(str % ".mp3")))]
+                     album (assoc :album album))]
     (reset! common/configuration conf)))
 
 (defn- validate-args
